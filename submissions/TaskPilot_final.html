@@ -1,0 +1,1302 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskPilot - Gamified Chore Management</title>
+    <link rel="stylesheet" href="TaskPilot_final.css">
+</head>
+
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-container">
+            <div class="login-header">
+                <h1>📋 TaskPilot</h1>
+                <p>Gamified Task Manager for Families & Friends</p>
+            </div>
+
+            <!-- Email Input -->
+            <div id="emailStep" class="login-step active">
+                <h2>Welcome! 👋</h2>
+                <p>Let's verify your email to get started</p>
+                <form id="emailForm" class="login-form">
+                    <input type="email" id="userEmail" placeholder="Enter your Gmail address" required>
+                    <button type="submit" class="btn btn-primary">📧 Send Verification Code</button>
+                </form>
+            </div>
+
+            <!-- Verification Code Step -->
+            <div id="verificationStep" class="login-step">
+                <h2>Check Your Email ✉️</h2>
+                <p id="verificationMessage">A verification code has been sent to <strong id="sentToEmail"></strong></p>
+                <form id="verificationForm" class="login-form">
+                    <input type="text" id="verificationCode" placeholder="Enter 6-digit code" maxlength="6" required>
+                    <button type="submit" class="btn btn-primary">✅ Verify Code</button>
+                    <button type="button" class="btn btn-secondary" onclick="goBackToEmail()">🔙 Change Email</button>
+                </form>
+            </div>
+
+            <!-- Usage Type Step -->
+            <div id="usageTypeStep" class="login-step">
+                <h2>How will you use TaskPilot? 🤔</h2>
+                <p>This helps us personalize your experience</p>
+                <form id="usageTypeForm" class="login-form">
+                    <label class="radio-group">
+                        <input type="radio" name="usageType" value="family" required>
+                        <span class="radio-label">👨‍👩‍👧‍👦 With my family</span>
+                    </label>
+                    <label class="radio-group">
+                        <input type="radio" name="usageType" value="friends">
+                        <span class="radio-label">👫 With Friends</span>
+                    </label>
+                    <label class="radio-group">
+                        <input type="radio" name="usageType" value="both">
+                        <span class="radio-label">👥 Both family and friends</span>
+                    </label>
+                    <button type="submit" class="btn btn-primary">🚀 Let's Go!</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="container" id="mainApp" style="display: none;">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="logo">
+                <h1>📋 TaskPilot</h1>
+                <p>Gamified Task Manager</p>
+            </div>
+            <nav class="nav-menu">
+                <button class="nav-btn active" data-tab="dashboard">🏠 Dashboard</button>
+                <button class="nav-btn" data-tab="groups">👥 Groups</button>
+                <button class="nav-btn" data-tab="tasks">✅ Tasks</button>
+                <button class="nav-btn" data-tab="analytics">📊 Analytics</button>
+                <button class="nav-btn" data-tab="shop">🛍️ Shop</button>
+                <button class="nav-btn" data-tab="settings">⚙️ Settings</button>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard Tab -->
+            <section id="dashboard" class="tab-content active">
+                <h2>Welcome to TaskPilot! 🚀</h2>
+                <div class="dashboard-grid">
+                    <div class="card stat-card">
+                        <h3>📚 Total Groups</h3>
+                        <p class="stat-number" id="totalGroups">0</p>
+                    </div>
+                    <div class="card stat-card">
+                        <h3>👥 Total Members</h3>
+                        <p class="stat-number" id="totalMembers">0</p>
+                    </div>
+                    <div class="card stat-card">
+                        <h3>Completed Tasks ✨</h3>
+                        <p class="stat-number" id="completedTasks">0</p>
+                    </div>
+                    <div class="card stat-card">
+                        <h3>🏆 Total Points</h3>
+                        <p class="stat-number" id="totalPoints">0</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>⭐ Recent Groups</h3>
+                    <div id="recentGroups" class="list">
+                        <p class="empty">No groups yet. Create one to get started!</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Groups Tab -->
+            <section id="groups" class="tab-content">
+                <h2>Manage Your Groups 👥</h2>
+
+                <!-- Create Group Form -->
+                <div class="card">
+                    <h3>Create New Group</h3>
+                    <form id="createGroupForm" class="form">
+                        <input type="text" id="groupName" placeholder="Group name (e.g., Summer Chores)" required>
+                        <input type="text" id="groupDescription" placeholder="Description (optional)">
+                        <button type="submit" class="btn btn-primary">➕ Create Group</button>
+                    </form>
+                </div>
+
+                <!-- Groups List -->
+                <div class="card">
+                    <h3>All Groups</h3>
+                    <div id="groupsList" class="list">
+                        <p class="empty">No groups found. Create one above!</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tasks Tab -->
+            <section id="tasks" class="tab-content">
+                <h2>Task Management ✅</h2>
+
+                <!-- Select Group for Tasks -->
+                <div class="card">
+                    <label><strong>📚 Select Group:</strong></label>
+                    <select id="taskGroupSelect" class="form-control">
+                        <option value="">Choose a group...</option>
+                    </select>
+                </div>
+
+                <!-- Create Task Form -->
+                <div class="card" id="createTaskSection" style="display: none;">
+                    <h3>Create New Task</h3>
+                    <form id="createTaskForm" class="form">
+                        <input type="text" id="taskTitle" placeholder="Task title" required>
+                        <textarea id="taskDescription" placeholder="Description" rows="3"></textarea>
+                        <input type="datetime-local" id="taskDeadline" required>
+
+                        <select id="taskPriority" required>
+                            <option value="">Priority</option>
+                            <option value="LOW">⬇️ LOW</option>
+                            <option value="MEDIUM">➡️ MEDIUM</option>
+                            <option value="HIGH">⬆️ HIGH</option>
+                        </select>
+
+                        <input type="number" id="taskPoints" placeholder="Points (max 100)" min="1" max="100" required>
+
+                        <select id="taskMember" required>
+                            <option value="">Assign to...</option>
+                        </select>
+
+                        <button type="submit" class="btn btn-primary">✨ Create Task</button>
+                    </form>
+                </div>
+
+                <!-- Tasks List -->
+                <div class="card">
+                    <h3>Tasks List</h3>
+                    <div id="tasksList" class="list">
+                        <p class="empty">Select a group to view tasks</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Analytics Tab -->
+            <section id="analytics" class="tab-content">
+                <h2>Analytics & Insights 📊</h2>
+
+                <!-- Select Group for Analytics -->
+                <div class="card">
+                    <label><strong>📚 Select Group:</strong></label>
+                    <select id="analyticsGroupSelect" class="form-control">
+                        <option value="">Choose a group...</option>
+                    </select>
+                </div>
+
+                <!-- Analytics Cards -->
+                <div id="analyticsContainer" style="display: none;" class="dashboard-grid">
+                    <div class="card stat-card">
+                        <h3>⭐ Top Performer</h3>
+                        <p id="topPerformer" class="stat-text">-</p>
+                        <p id="topPerformerPoints" class="stat-number">-</p>
+                    </div>
+                    <div class="card stat-card">
+                        <h3>📈 Productivity Score</h3>
+                        <p id="productivityScore" class="stat-number">-</p>
+                    </div>
+                    <div class="card stat-card">
+                        <h3>⚙️ Avg Tasks/Member</h3>
+                        <p id="workloadDistribution" class="stat-number">-</p>
+                    </div>
+                    <div class="card stat-card">
+                        <h3>⏰ Overdue %</h3>
+                        <p id="overduePercentage" class="stat-number">-</p>
+                    </div>
+                </div>
+
+                <!-- Leaderboard -->
+                <div class="card">
+                    <h3>🏆 Leaderboard</h3>
+                    <div id="leaderboard" class="list">
+                        <p class="empty">Select a group to view leaderboard</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Shop Tab -->
+            <section id="shop" class="tab-content">
+                <h2>🛍️ Shop - Spend Your Points!</h2>
+
+                <div class="card">
+                    <h3>💰 Your Shop Points</h3>
+                    <p style="font-size: 32px; color: #ffd700; font-weight: bold; margin: 15px 0;">
+                        <span id="userPointsDisplay">0</span> ✨
+                    </p>
+                    <p style="font-size: 12px; color: #666; margin: 0;">💡 <strong>Conversion: 4 earned points = 1 shop
+                            point</strong></p>
+                </div>
+
+                <div class="card">
+                    <h3>Available Items</h3>
+                    <div id="shopItems" class="shop-grid">
+                        <!-- Items will be rendered here -->
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>📦 Purchase History</h3>
+                    <div id="purchaseHistory" class="list">
+                        <p class="empty">No purchases yet</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings Tab -->
+            <section id="settings" class="tab-content">
+                <h2>Settings ⚙️</h2>
+
+                <div class="card">
+                    <h3>� Account</h3>
+                    <p id="userEmailDisplay" style="margin-bottom: 15px; color: #666;"></p>
+                    <p id="usageTypeDisplay" style="margin-bottom: 15px; color: #666;"></p>
+                    <button id="logoutBtn" class="btn btn-danger">🚪 Logout</button>
+                </div>
+
+                <div class="card">
+                    <h3>�🔄 Reset Application</h3>
+                    <p style="margin-bottom: 15px; color: #666;">Clear all app data and start fresh. This will delete
+                        all groups, tasks, members, and points.</p>
+                    <button id="app-reset" class="btn btn-danger">🔄 Reset App (Clear All Data)</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Members Modal -->
+    <div id="membersModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Members in <span id="modalGroupName"></span></h2>
+
+            <!-- Gmail Verification for Members Section -->
+            <div id="memberGmailVerificationSection"
+                style="margin-bottom: 20px; padding: 15px; background: #fff3cd; border-radius: 8px; display: none;">
+                <h3 style="margin: 0 0 10px 0; color: #856404;">🔐 Gmail Verification Required</h3>
+                <p style="margin: 0 0 15px 0; color: #666; font-size: 14px;">Verify each member's Gmail to ensure
+                    authentic email addresses.</p>
+
+                <form id="memberEmailVerificationForm" class="form" style="display: block;">
+                    <input type="email" id="memberVerificationEmail" placeholder="Member's Gmail address" required>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">📧 Send Code</button>
+                </form>
+
+                <form id="memberVerificationCodeForm" class="form" style="display: none;">
+                    <p style="margin: 0 0 10px 0; color: #666; font-size: 14px;">Code sent to <strong
+                            id="memberCodeSentTo"></strong></p>
+                    <input type="text" id="memberVerificationCode" placeholder="Enter 6-digit code" maxlength="6"
+                        required>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">✅ Verify Code</button>
+                </form>
+            </div>
+
+            <!-- Batch Add Members Section -->
+            <div id="batchAddSection"
+                style="margin-bottom: 20px; padding: 15px; background: #f0f8ff; border-radius: 8px;">
+                <h3 style="margin: 0 0 10px 0;">➕ Add Members</h3>
+                <p style="margin: 0 0 10px 0; color: #666; font-size: 14px;">How many members to add at once?</p>
+                <div style="display: flex; gap: 10px;">
+                    <input type="number" id="batchMemberCount" min="1" max="10" value="1"
+                        style="width: 80px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    <button id="batchAddBtn" class="btn btn-primary" style="flex: 1;">Start Adding</button>
+                </div>
+            </div>
+
+            <!-- Dynamic Member Form -->
+            <form id="addMemberForm" class="form" style="display: none;">
+                <div id="membersFormContainer"></div>
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">✅ Add All Members</button>
+                    <button type="button" id="cancelBatchBtn" class="btn"
+                        style="flex: 1; background: #ccc; color: #333;">❌ Cancel</button>
+                </div>
+            </form>
+
+            <div id="membersList" class="list"></div>
+        </div>
+    </div>
+
+    <script>
+        // ===== AUTHENTICATION SYSTEM =====
+        let userEmail = null;
+        let usageType = null;
+        const verificationCodes = {}; // In production, this would be backend
+
+        // Generate a 6-digit code
+        function generateVerificationCode() {
+            return Math.floor(100000 + Math.random() * 900000).toString();
+        }
+
+        // Email verification form
+        document.getElementById('emailForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            userEmail = document.getElementById('userEmail').value;
+
+            // In production, send to backend
+            // For demo: simulate email and show code
+            const code = generateVerificationCode();
+            verificationCodes[userEmail] = code;
+
+            console.log('🔐 Demo Mode: Verification code is:', code);
+
+            // Show verification step
+            document.getElementById('emailStep').classList.remove('active');
+            document.getElementById('verificationStep').classList.add('active');
+            document.getElementById('sentToEmail').textContent = userEmail;
+
+            // In production, send this code via Gmail API
+            // sendVerificationEmail(userEmail, code);
+
+            showMessage('Demo Mode: Check console for verification code! 👀', 'info');
+        });
+
+        // Verification code form
+        document.getElementById('verificationForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const enteredCode = document.getElementById('verificationCode').value;
+            const expectedCode = verificationCodes[userEmail];
+
+            if (enteredCode === expectedCode) {
+                showMessage('✅ Email verified! Proceed to next step', 'success');
+                document.getElementById('verificationStep').classList.remove('active');
+                document.getElementById('usageTypeStep').classList.add('active');
+            } else {
+                showMessage('❌ Invalid code. Please try again', 'error');
+            }
+        });
+
+        // Usage type form
+        document.getElementById('usageTypeForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            usageType = document.querySelector('input[name="usageType"]:checked').value;
+
+            // Save user info
+            localStorage.setItem('taskpilot-user', JSON.stringify({
+                email: userEmail,
+                usageType: usageType,
+                loginTime: new Date()
+            }));
+
+            showMessage(`🎉 Welcome! You're all set for ${usageType} use!`, 'success');
+
+            // Show main app after delay
+            setTimeout(() => {
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('mainApp').style.display = 'grid';
+                initializeApp();
+            }, 1500);
+        });
+
+        function goBackToEmail() {
+            document.getElementById('verificationStep').classList.remove('active');
+            document.getElementById('emailStep').classList.add('active');
+            document.getElementById('verificationCode').value = '';
+        }
+
+        // Check if user is logged in
+        function checkAuth() {
+            const userInfo = localStorage.getItem('taskpilot-user');
+            if (userInfo) {
+                const user = JSON.parse(userInfo);
+                userEmail = user.email;
+                usageType = user.usageType;
+
+                // Skip login screen
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('mainApp').style.display = 'grid';
+                initializeApp();
+            }
+        }
+
+        // Logout function
+        function logout() {
+            if (confirm('Are you sure you want to logout? 👋')) {
+                localStorage.removeItem('taskpilot-user');
+                document.getElementById('mainApp').style.display = 'none';
+                document.getElementById('loginScreen').style.display = 'flex';
+                document.getElementById('emailForm').reset();
+                document.getElementById('verificationForm').reset();
+                document.getElementById('usageTypeForm').reset();
+                document.getElementById('emailStep').classList.add('active');
+                document.getElementById('verificationStep').classList.remove('active');
+                document.getElementById('usageTypeStep').classList.remove('active');
+                showMessage('Logged out successfully', 'success');
+            }
+        }
+
+        function initializeApp() {
+            // Initialize the main app after login
+            loadData();
+            updateDashboard();
+            renderGroups();
+            renderShop();
+            updateUserInfo();
+            customizeUIByUsageType();
+        }
+
+        function customizeUIByUsageType() {
+            // Customize UI based on usage type
+            // Currently no specific customizations needed for family/friends/both modes
+            // All features are available for these modes
+        }
+
+        // ===== DATA STORAGE & APP LOGIC =====
+        let data = {
+            groups: [],
+            tasks: [],
+            members: [],
+            purchases: []
+        };
+
+        // Shop Items Definition
+        const shopItems = [
+            { id: 1, name: 'Ice Cream 🍦', cost: 50, description: 'Delicious ice cream treat' },
+            { id: 2, name: 'Extra Gaming Time ⏱️', cost: 100, description: '+1 hour gaming time' },
+            { id: 3, name: 'Extra Play Time 🎮', cost: 75, description: '+30 min extra play' },
+            { id: 4, name: 'Pizza Party 🍕', cost: 150, description: 'Family pizza night' },
+            { id: 5, name: 'Movie Night 🎬', cost: 80, description: 'Pick a movie to watch' },
+            { id: 6, name: 'Sleeping Late ⏰', cost: 60, description: 'Sleep an extra hour' },
+            { id: 7, name: 'Skip Chore Card 🎫', cost: 40, description: 'Skip one assigned chore' },
+            { id: 8, name: 'Double Points Multiplier 2️⃣', cost: 200, description: 'Earn 2x points for a day' },
+            { id: 9, name: 'Treasure Item ⚔️', cost: 120, description: 'Fantasy game weapon/shield' },
+            { id: 10, name: 'Birthday Voucher 🎂', cost: 300, description: 'Special birthday reward' }
+        ];
+
+        // Load data from localStorage
+        function loadData() {
+            const stored = localStorage.getItem('taskpilot-data');
+            if (stored) {
+                data = JSON.parse(stored);
+            }
+        }
+
+        // Save data to localStorage
+        function saveData() {
+            localStorage.setItem('taskpilot-data', JSON.stringify(data));
+            updateDashboard();
+            if (document.getElementById('shopItems')) {
+                renderShop();
+            }
+        }
+
+        // Tab switching with animation
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const tabName = e.target.dataset.tab;
+                switchTab(tabName);
+            });
+        });
+
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            // Remove active class from buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            // Add active class to clicked button
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+        }
+
+        // Create Group
+        document.getElementById('createGroupForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('groupName').value;
+            const description = document.getElementById('groupDescription').value;
+
+            const group = {
+                id: Date.now(),
+                name: name,
+                description: description,
+                members: [],
+                tasks: [],
+                createdAt: new Date()
+            };
+
+            data.groups.push(group);
+            saveData();
+            renderGroups();
+
+            // Clear form
+            e.target.reset();
+
+            // Show success message
+            showMessage('Group created! 🎉', 'success');
+        });
+
+        // Render Groups
+        function renderGroups() {
+            const groupsList = document.getElementById('groupsList');
+            const taskGroupSelect = document.getElementById('taskGroupSelect');
+            const analyticsGroupSelect = document.getElementById('analyticsGroupSelect');
+
+            groupsList.innerHTML = '';
+            taskGroupSelect.innerHTML = '<option value="">Choose a group...</option>';
+            analyticsGroupSelect.innerHTML = '<option value="">Choose a group...</option>';
+
+            if (data.groups.length === 0) {
+                groupsList.innerHTML = '<p class="empty">No groups yet. Create one to get started!</p>';
+                return;
+            }
+
+            data.groups.forEach(group => {
+                const item = document.createElement('div');
+                item.className = 'list-item';
+                item.innerHTML = `
+                    <div class="list-item-content">
+                        <div class="list-item-title">${group.name} 📚</div>
+                        <div class="list-item-desc">${group.description || 'No description'}</div>
+                        <div class="list-item-desc">👥 ${group.members.length} members | ✅ ${group.tasks.length} tasks</div>
+                    </div>
+                    <div class="list-item-actions">
+                        <button class="btn btn-secondary" onclick="openMembersModal(${group.id})">👥 Members</button>
+                        <button class="btn btn-danger" onclick="deleteGroup(${group.id})">🗑️</button>
+                    </div>`;
+                groupsList.appendChild(item);
+
+                // Add to select dropdowns
+                const option1 = document.createElement('option');
+                option1.value = group.id;
+                option1.textContent = group.name;
+                taskGroupSelect.appendChild(option1);
+
+                const option2 = document.createElement('option');
+                option2.value = group.id;
+                option2.textContent = group.name;
+                analyticsGroupSelect.appendChild(option2);
+            });
+        }
+
+        // Delete Group
+        function deleteGroup(groupId) {
+            if (confirm('Are you sure you want to delete this group? 😢')) {
+                data.groups = data.groups.filter(g => g.id !== groupId);
+                data.tasks = data.tasks.filter(t => t.groupId !== groupId);
+                saveData();
+                renderGroups();
+                showMessage('Group deleted', 'success');
+            }
+        }
+
+        // Members Modal
+        let currentGroupId = null;
+
+        function openMembersModal(groupId) {
+            currentGroupId = groupId;
+            const group = data.groups.find(g => g.id === groupId);
+            document.getElementById('modalGroupName').textContent = group.name;
+            document.getElementById('membersModal').classList.add('show');
+            renderMembers();
+        }
+
+        document.querySelector('.close').addEventListener('click', () => {
+            document.getElementById('membersModal').classList.remove('show');
+        });
+
+        // Batch Member Addition with Gmail Verification
+        let batchCount = 0;
+        let memberVerificationCodes = {}; // Store verification codes for members
+        let verifiedMemberEmail = null; // Track verified email
+
+        document.getElementById('batchAddBtn').addEventListener('click', () => {
+            batchCount = parseInt(document.getElementById('batchMemberCount').value) || 1;
+            if (batchCount < 1 || batchCount > 10) {
+                showMessage('⚠️ Please enter between 1 and 10 members', 'error');
+                return;
+            }
+
+            // Show Gmail verification section
+            document.getElementById('batchAddSection').style.display = 'none';
+            document.getElementById('memberGmailVerificationSection').style.display = 'block';
+            verifiedMemberEmail = null;
+        });
+
+        // Gmail verification email form for members
+        document.getElementById('memberEmailVerificationForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('memberVerificationEmail').value;
+
+            if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+                showMessage('❌ Invalid email format', 'error');
+                return;
+            }
+
+            // Generate verification code
+            const code = generateVerificationCode();
+            memberVerificationCodes[email] = code;
+
+            console.log('🔐 Member Gmail Verification Code:', code);
+
+            document.getElementById('memberEmailVerificationForm').style.display = 'none';
+            document.getElementById('memberVerificationCodeForm').style.display = 'block';
+            document.getElementById('memberCodeSentTo').textContent = email;
+
+            showMessage('Demo Mode: Check console for verification code! 👀', 'info');
+        });
+
+        // Verification code form for members
+        document.getElementById('memberVerificationCodeForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('memberVerificationEmail').value;
+            const enteredCode = document.getElementById('memberVerificationCode').value;
+            const expectedCode = memberVerificationCodes[email];
+
+            if (enteredCode === expectedCode) {
+                showMessage('✅ Gmail verified! Proceeding to add members...', 'success');
+                verifiedMemberEmail = email;
+
+                // Reset verification form
+                document.getElementById('memberEmailVerificationForm').reset();
+                document.getElementById('memberVerificationCodeForm').reset();
+                document.getElementById('memberEmailVerificationForm').style.display = 'block';
+                document.getElementById('memberVerificationCodeForm').style.display = 'none';
+                document.getElementById('memberGmailVerificationSection').style.display = 'none';
+
+                // Show batch form
+                document.getElementById('addMemberForm').style.display = 'block';
+                generateMemberForms(batchCount);
+            } else {
+                showMessage('❌ Invalid code. Please try again', 'error');
+            }
+        });
+
+        function generateMemberForms(count) {
+            const container = document.getElementById('membersFormContainer');
+            container.innerHTML = '';
+
+            for (let i = 1; i <= count; i++) {
+                const formGroup = document.createElement('div');
+                formGroup.style.cssText = 'padding: 12px; margin-bottom: 12px; background: #f9f9f9; border-radius: 6px; border-left: 4px solid #4CAF50;';
+
+                // Generate relation options based on usage type
+                let relationField = '';
+
+                if (usageType === 'friends') {
+                    // No relation field for friends mode
+                    relationField = '';
+                } else if (usageType === 'family') {
+                    // Limited options for family mode
+                    relationField = `
+                        <select class="member-relation" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
+                            <option value="">Relation to host...</option>
+                            <option value="parent">👨‍👩 Parent</option>
+                            <option value="child">👶 Child</option>
+                            <option value="cousin">👯 Cousin</option>
+                        </select>`;
+                } else {
+                    // Full options for both mode (and now personal mode too)
+                    relationField = `
+                        <select class="member-relation" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
+                            <option value="">Relation to host...</option>
+                            <option value="parent">👨‍👩 Parent</option>
+                            <option value="child">👶 Child</option>
+                            <option value="sibling">👯 Sibling</option>
+                            <option value="cousin">👯 Cousin</option>
+                            <option value="friend">👫 Friend</option>
+                            <option value="teacher">👨‍🏫 Teacher</option>
+                            <option value="coach">🏅 Coach</option>
+                            <option value="guardian">🛡️ Guardian</option>
+                            <option value="other">❓ Other</option>
+                        </select>`;
+                }
+
+                formGroup.innerHTML = `
+                    <h4 style="margin: 0 0 10px 0; color: #333;">Member ${i} of ${count}</h4>
+                    <input type="text" class="member-name" placeholder="Member name" required style="width: 100%; padding: 8px; margin-bottom: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
+                    <input type="email" class="member-email" placeholder="Email address" required style="width: 100%; padding: 8px; margin-bottom: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
+                    ${relationField}`;
+
+                container.appendChild(formGroup);
+            }
+        }
+
+        document.getElementById('cancelBatchBtn').addEventListener('click', () => {
+            // Reset everything
+            document.getElementById('batchAddSection').style.display = 'block';
+            document.getElementById('memberGmailVerificationSection').style.display = 'none';
+            document.getElementById('addMemberForm').style.display = 'none';
+            document.getElementById('membersFormContainer').innerHTML = '';
+            document.getElementById('batchMemberCount').value = '1';
+            document.getElementById('memberEmailVerificationForm').reset();
+            document.getElementById('memberVerificationCodeForm').reset();
+            document.getElementById('memberEmailVerificationForm').style.display = 'block';
+            document.getElementById('memberVerificationCodeForm').style.display = 'none';
+            verifiedMemberEmail = null;
+        });
+
+        document.getElementById('addMemberForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            if (!verifiedMemberEmail) {
+                showMessage('❌ Please verify Gmail first', 'error');
+                return;
+            }
+
+            const memberInputs = document.querySelectorAll('#membersFormContainer > div');
+            const newMembers = [];
+
+            memberInputs.forEach((input, index) => {
+                const name = input.querySelector('.member-name').value.trim();
+                const email = input.querySelector('.member-email').value.trim();
+                const relationElement = input.querySelector('.member-relation');
+                const relation = relationElement ? relationElement.value : 'member'; // Default to 'member' if no relation field
+
+                // Make relation optional for friends and personal modes
+                if (!name || !email) {
+                    showMessage(`❌ Please fill name and email for Member ${index + 1}`, 'error');
+                    throw new Error('Incomplete form');
+                }
+
+                // Only check relation if the field exists
+                if (relationElement && !relation) {
+                    showMessage(`❌ Please select relation for Member ${index + 1}`, 'error');
+                    throw new Error('Incomplete form');
+                }
+
+                // Validate email format
+                if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+                    showMessage(`❌ Invalid email for ${name}`, 'error');
+                    throw new Error('Invalid email');
+                }
+
+                const member = {
+                    id: Date.now() + index,
+                    name: name,
+                    email: email,
+                    relation: relation,
+                    groupId: currentGroupId,
+                    points: 0,
+                    verifiedBy: verifiedMemberEmail, // Track who verified
+                    verifiedAt: new Date().toISOString()
+                };
+
+                newMembers.push(member);
+            });
+
+            // Add all members to data
+            const group = data.groups.find(g => g.id === currentGroupId);
+            if (!group.members) group.members = [];
+
+            newMembers.forEach(member => {
+                group.members.push(member);
+                data.members.push(member);
+            });
+
+            saveData();
+            renderMembers();
+
+            // Reset form
+            document.getElementById('batchAddSection').style.display = 'block';
+            document.getElementById('memberGmailVerificationSection').style.display = 'none';
+            document.getElementById('addMemberForm').style.display = 'none';
+            document.getElementById('membersFormContainer').innerHTML = '';
+            document.getElementById('batchMemberCount').value = '1';
+            document.getElementById('memberEmailVerificationForm').reset();
+            document.getElementById('memberVerificationCodeForm').reset();
+            document.getElementById('memberEmailVerificationForm').style.display = 'block';
+            document.getElementById('memberVerificationCodeForm').style.display = 'none';
+            verifiedMemberEmail = null;
+
+            showMessage(`✅ Added ${newMembers.length} member${newMembers.length > 1 ? 's' : ''} with Gmail verification! 🎉`, 'success');
+        });
+
+        function renderMembers() {
+            const membersList = document.getElementById('membersList');
+            const group = data.groups.find(g => g.id === currentGroupId);
+
+            membersList.innerHTML = '';
+
+            if (!group.members || group.members.length === 0) {
+                membersList.innerHTML = '<p class="empty">No members yet</p>';
+                return;
+            }
+
+            group.members.forEach(member => {
+                const item = document.createElement('div');
+                item.className = 'list-item';
+                const relationEmoji = {
+                    'parent': '👨‍👩',
+                    'child': '👶',
+                    'sibling': '👯',
+                    'cousin': '👯',
+                    'friend': '👫',
+                    'teacher': '👨‍🏫',
+                    'coach': '🏅',
+                    'guardian': '🛡️',
+                    'member': '👤',
+                    'other': '❓'
+                };
+                const emoji = relationEmoji[member.relation] || '👤';
+
+                // Only show relation field for family and both modes
+                const showRelation = usageType === 'family' || usageType === 'both';
+                const relationLine = showRelation ? `<div class="list-item-desc">🔗 ${member.relation || 'Not specified'}</div>` : '';
+
+                item.innerHTML = `
+                    <div class="list-item-content">
+                        <div class="list-item-title">${member.name} ${emoji}</div>
+                        <div class="list-item-desc">📧 ${member.email}</div>
+                        ${relationLine}
+                        <div class="list-item-desc">🏆 ${member.points} points</div>
+                    </div>
+                    <div class="list-item-actions">
+                        <button class="btn btn-danger" onclick="deleteMember(${currentGroupId}, ${member.id})">🗑️</button>
+                    </div>`;
+                membersList.appendChild(item);
+            });
+        }
+
+        function deleteMember(groupId, memberId) {
+            const group = data.groups.find(g => g.id === groupId);
+            group.members = group.members.filter(m => m.id !== memberId);
+            data.members = data.members.filter(m => m.id !== memberId);
+            saveData();
+            renderMembers();
+        }
+
+        // Task Group Selection
+        document.getElementById('taskGroupSelect').addEventListener('change', (e) => {
+            const groupId = parseInt(e.target.value);
+            const section = document.getElementById('createTaskSection');
+
+            if (groupId) {
+                section.style.display = 'block';
+                const group = data.groups.find(g => g.id === groupId);
+                const memberSelect = document.getElementById('taskMember');
+                memberSelect.innerHTML = '<option value="">Assign to...</option>';
+
+                if (group.members) {
+                    group.members.forEach(member => {
+                        const option = document.createElement('option');
+                        option.value = member.id;
+                        option.textContent = member.name;
+                        memberSelect.appendChild(option);
+                    });
+                }
+
+                renderTasks(groupId);
+            } else {
+                section.style.display = 'none';
+            }
+        });
+
+        // Create Task
+        document.getElementById('createTaskForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const groupId = parseInt(document.getElementById('taskGroupSelect').value);
+            const title = document.getElementById('taskTitle').value;
+            const description = document.getElementById('taskDescription').value;
+            const deadline = document.getElementById('taskDeadline').value;
+            const priority = document.getElementById('taskPriority').value;
+            const points = parseInt(document.getElementById('taskPoints').value);
+            const memberId = parseInt(document.getElementById('taskMember').value);
+
+            // Validate max points (100)
+            if (points > 100) {
+                showMessage('❌ Maximum 100 points allowed per task!', 'error');
+                return;
+            }
+            if (points < 1) {
+                showMessage('❌ Minimum 1 point required!', 'error');
+                return;
+            }
+
+            const task = {
+                id: Date.now(),
+                groupId: groupId,
+                memberId: memberId,
+                title: title,
+                description: description,
+                deadline: deadline,
+                priority: priority,
+                points: points,
+                completed: false,
+                createdAt: new Date()
+            };
+
+            data.tasks.push(task);
+            saveData();
+            renderTasks(groupId);
+            e.target.reset();
+            showMessage('Task created! 🎉', 'success');
+        });
+
+        // Render Tasks
+        function renderTasks(groupId) {
+            const tasksList = document.getElementById('tasksList');
+            const tasks = data.tasks.filter(t => t.groupId === groupId);
+
+            tasksList.innerHTML = '';
+
+            if (tasks.length === 0) {
+                tasksList.innerHTML = '<p class="empty">No tasks yet</p>';
+                return;
+            }
+
+            tasks.forEach(task => {
+                const member = data.members.find(m => m.id === task.memberId);
+                const memberName = member ? member.name : 'Unassigned';
+
+                const item = document.createElement('div');
+                item.className = `task-item ${task.completed ? 'completed' : ''}`;
+                item.innerHTML = `
+                    <div class="task-header">
+                        <div>
+                            <div class="task-title">${task.title}</div>
+                            <div class="list-item-desc">${task.description}</div>
+                            <div style="margin-top: 10px;">
+                                <span class="badge ${task.priority.toLowerCase()}">${task.priority}</span>
+                                <span class="points">🏆 ${task.points} pts</span>
+                                <span class="list-item-desc">👤 ${memberName}</span>
+                            </div>
+                        </div>
+                        <div class="list-item-actions">
+                            <button class="btn ${task.completed ? 'btn-secondary' : 'btn-success'}" onclick="toggleTask(${task.id})">
+                                ${task.completed ? '↩️ Undo' : '✅ Complete'}
+                            </button>
+                            <button class="btn btn-danger" onclick="deleteTask(${task.id})">🗑️</button>
+                        </div>
+                    </div>`;
+                tasksList.appendChild(item);
+            });
+        }
+
+        // Toggle Task Completion
+        function toggleTask(taskId) {
+            const task = data.tasks.find(t => t.id === taskId);
+            if (task) {
+                task.completed = !task.completed;
+                if (task.completed) {
+                    const member = data.members.find(m => m.id === task.memberId);
+                    if (member) {
+                        member.points = (member.points || 0) + task.points;
+
+                        // Conversion System: Every 4 earned points = 1 shop point
+                        const shopPointsEarned = Math.floor(member.points / 4);
+                        const previousShopPoints = member.shopPoints || 0;
+                        member.shopPoints = shopPointsEarned;
+
+                        // Check if new shop point was earned
+                        if (member.shopPoints > previousShopPoints) {
+                            showMessage(`Task completed! ${task.points} points earned! 🎉\n✨ 4 points = 1 Shop Point (${member.shopPoints} shop points available) ✨`, 'success');
+                        } else {
+                            showMessage(`Task completed! ${task.points} points earned! 🎉`, 'success');
+                        }
+                    }
+                } else {
+                    const member = data.members.find(m => m.id === task.memberId);
+                    if (member) {
+                        member.points = (member.points || 0) - task.points;
+                        // Recalculate shop points after deduction
+                        member.shopPoints = Math.floor(member.points / 4);
+                    }
+                }
+                saveData();
+                renderTasks(task.groupId);
+            }
+        }
+
+        function deleteTask(taskId) {
+            const task = data.tasks.find(t => t.id === taskId);
+            if (confirm('Delete this task? 🗑️')) {
+                data.tasks = data.tasks.filter(t => t.id !== taskId);
+                saveData();
+                if (task) renderTasks(task.groupId);
+            }
+        }
+
+        // Analytics
+        document.getElementById('analyticsGroupSelect').addEventListener('change', (e) => {
+            const groupId = parseInt(e.target.value);
+            const container = document.getElementById('analyticsContainer');
+
+            if (groupId) {
+                container.style.display = 'grid';
+                updateAnalytics(groupId);
+            } else {
+                container.style.display = 'none';
+            }
+        });
+
+        function updateAnalytics(groupId) {
+            const group = data.groups.find(g => g.id === groupId);
+            const tasks = data.tasks.filter(t => t.groupId === groupId);
+
+            // Top Performer
+            let topPerformer = null;
+            let maxPoints = 0;
+            if (group.members) {
+                group.members.forEach(member => {
+                    if (member.points > maxPoints) {
+                        maxPoints = member.points;
+                        topPerformer = member;
+                    }
+                });
+            }
+
+            document.getElementById('topPerformer').textContent = topPerformer ? topPerformer.name : '-';
+            document.getElementById('topPerformerPoints').textContent = topPerformer ? topPerformer.points : '-';
+
+            // Productivity Score
+            const completedTasks = tasks.filter(t => t.completed).length;
+            const productivityScore = tasks.length > 0 ? Math.round((completedTasks / tasks.length) * 100) : 0;
+            document.getElementById('productivityScore').textContent = productivityScore + '%';
+
+            // Avg Tasks per Member
+            const avgTasks = group.members && group.members.length > 0
+                ? (tasks.length / group.members.length).toFixed(1)
+                : 0;
+            document.getElementById('workloadDistribution').textContent = avgTasks;
+
+            // Overdue Percentage
+            const now = new Date();
+            const overdueTasks = tasks.filter(t => !t.completed && new Date(t.deadline) < now).length;
+            const overduePercentage = tasks.length > 0 ? Math.round((overdueTasks / tasks.length) * 100) : 0;
+            document.getElementById('overduePercentage').textContent = overduePercentage + '%';
+
+            // Leaderboard
+            renderLeaderboard(groupId);
+        }
+
+        function renderLeaderboard(groupId) {
+            const group = data.groups.find(g => g.id === groupId);
+            const leaderboard = document.getElementById('leaderboard');
+
+            leaderboard.innerHTML = '';
+
+            if (!group.members || group.members.length === 0) {
+                leaderboard.innerHTML = '<p class="empty">No members in this group</p>';
+                return;
+            }
+
+            const sorted = [...group.members].sort((a, b) => b.points - a.points);
+
+            sorted.forEach((member, index) => {
+                const item = document.createElement('div');
+                item.className = `leaderboard-item top${index + 1}`;
+
+                let medal = '🏅';
+                if (index === 0) medal = '🥇';
+                else if (index === 1) medal = '🥈';
+                else if (index === 2) medal = '🥉';
+
+                item.innerHTML = `
+                    <div class="rank">${medal} #${index + 1}</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title">${member.name}</div>
+                        <div class="list-item-desc">${member.points} points</div>
+                    </div>`;
+                leaderboard.appendChild(item);
+            });
+        }
+
+        // Dashboard Update
+        function updateDashboard() {
+            const totalGroups = data.groups.length;
+            const totalMembers = data.members.length;
+            const completedTasks = data.tasks.filter(t => t.completed).length;
+            const totalPoints = data.members.reduce((sum, m) => sum + m.points, 0);
+
+            document.getElementById('totalGroups').textContent = totalGroups;
+            document.getElementById('totalMembers').textContent = totalMembers;
+            document.getElementById('completedTasks').textContent = completedTasks;
+            document.getElementById('totalPoints').textContent = totalPoints;
+
+            // Recent Groups
+            const recentGroups = document.getElementById('recentGroups');
+            recentGroups.innerHTML = '';
+
+            if (data.groups.length === 0) {
+                recentGroups.innerHTML = '<p class="empty">No groups yet</p>';
+                return;
+            }
+
+            const recent = data.groups.slice(-3).reverse();
+            recent.forEach(group => {
+                const item = document.createElement('div');
+                item.className = 'list-item';
+                item.innerHTML = `
+                    <div class="list-item-content">
+                        <div class="list-item-title">${group.name}</div>
+                        <div class="list-item-desc">👥 ${group.members?.length || 0} members</div>
+                    </div>`;
+                recentGroups.appendChild(item);
+            });
+        }
+
+        // Show Message
+        function showMessage(text, type) {
+            // Create temporary message element
+            const msg = document.createElement('div');
+            msg.className = `${type}-message`;
+            msg.textContent = text;
+            msg.style.position = 'fixed';
+            msg.style.top = '20px';
+            msg.style.right = '20px';
+            msg.style.zIndex = '2000';
+            msg.style.maxWidth = '300px';
+            document.body.appendChild(msg);
+
+            setTimeout(() => {
+                msg.remove();
+            }, 3000);
+        }
+
+        // ===== SHOP FUNCTIONALITY =====
+        function renderShop() {
+            // Calculate total shop points (4 earned points = 1 shop point)
+            const userTotalShopPoints = data.members.reduce((sum, m) => sum + (Math.floor(m.points / 4) || 0), 0);
+            document.getElementById('userPointsDisplay').textContent = userTotalShopPoints + ' shop points';
+
+            const shopItemsContainer = document.getElementById('shopItems');
+            shopItemsContainer.innerHTML = '';
+
+            shopItems.forEach(item => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'shop-item';
+                const canAfford = userTotalShopPoints >= item.cost;
+                itemDiv.innerHTML = `
+                    <div class="shop-item-header">
+                        <h3>${item.name}</h3>
+                        <p class="shop-price">${item.cost} ✨</p>
+                    </div>
+                    <p class="shop-desc">${item.description}</p>
+                    <button class="btn ${canAfford ? 'btn-primary' : 'btn-disabled'}" 
+                            onclick="purchaseItem(${item.id})"
+                            ${canAfford ? '' : 'disabled'}>
+                        ${canAfford ? '✨ Buy Now' : '❌ Not Enough Points'}
+                    </button>`;
+                shopItemsContainer.appendChild(itemDiv);
+            });
+
+            renderPurchaseHistory();
+        }
+
+        function purchaseItem(itemId) {
+            const item = shopItems.find(i => i.id === itemId);
+            if (!item) return;
+
+            // Calculate total shop points (4 earned points = 1 shop point)
+            const userTotalShopPoints = data.members.reduce((sum, m) => sum + (Math.floor(m.points / 4) || 0), 0);
+
+            if (userTotalShopPoints < item.cost) {
+                showMessage('❌ Not enough shop points!', 'error');
+                return;
+            }
+
+            // Deduct shop points from member earned points (1 shop point = 4 earned points)
+            let shopPointsToDeduct = item.cost;
+            for (let member of data.members) {
+                if (shopPointsToDeduct <= 0) break;
+                const memberShopPoints = Math.floor(member.points / 4);
+                const pointsToDeduct = Math.min(memberShopPoints, shopPointsToDeduct);
+                member.points -= (pointsToDeduct * 4); // Deduct 4x earned points for each shop point
+                shopPointsToDeduct -= pointsToDeduct;
+            }
+
+            // Record purchase
+            const purchase = {
+                id: Date.now(),
+                itemId: itemId,
+                itemName: item.name,
+                cost: item.cost,
+                date: new Date().toLocaleDateString(),
+                time: new Date().toLocaleTimeString()
+            };
+
+            data.purchases.push(purchase);
+            saveData();
+            renderShop();
+            showMessage(`🎉 You bought ${item.name}!`, 'success');
+        }
+
+        function renderPurchaseHistory() {
+            const historyContainer = document.getElementById('purchaseHistory');
+
+            if (!data.purchases || data.purchases.length === 0) {
+                historyContainer.innerHTML = '<p class="empty">No purchases yet</p>';
+                return;
+            }
+
+            historyContainer.innerHTML = '';
+            const recentPurchases = data.purchases.slice().reverse().slice(0, 10);
+
+            recentPurchases.forEach(purchase => {
+                const item = document.createElement('div');
+                item.className = 'list-item';
+                item.innerHTML = `
+                    <div class="list-item-content">
+                        <div class="list-item-title">${purchase.itemName}</div>
+                        <div class="list-item-desc">📅 ${purchase.date} at ${purchase.time}</div>
+                        <div class="list-item-desc">💰 Cost: ${purchase.cost} points</div>
+                    </div>`;
+                historyContainer.appendChild(item);
+            });
+        }
+
+        // Modal close on outside click
+        window.addEventListener('click', (e) => {
+            const modal = document.getElementById('membersModal');
+            if (e.target === modal) {
+                modal.classList.remove('show');
+            }
+        });
+
+        // Reset Button Handler
+        document.getElementById('app-reset').addEventListener('click', async () => {
+            if (confirm('⚠️ Are you sure you want to clear ALL app data? This cannot be undone.')) {
+                localStorage.clear();
+                sessionStorage.clear();
+                if (typeof indexedDB !== 'undefined') {
+                    const dbs = await indexedDB.databases?.() || [];
+                    dbs.forEach(db => indexedDB.deleteDatabase(db.name));
+                }
+                if ('caches' in window) {
+                    const keys = await caches.keys();
+                    await Promise.all(keys.map(k => caches.delete(k)));
+                }
+                document.cookie.split(';').forEach(c => {
+                    document.cookie = c.replace(/^ +/, '').replace(/=.*/, '=;expires=' + new Date(0).toUTCString() + ';path=/');
+                });
+                showMessage('All app data cleared! Reloading...', 'success');
+                setTimeout(() => location.reload(), 1500);
+            }
+        });
+
+        // Initialize
+        loadData();
+        updateDashboard();
+        renderGroups();
+
+        // Logout button
+        document.getElementById('logoutBtn').addEventListener('click', logout);
+
+        // Display user info in settings
+        function updateUserInfo() {
+            document.getElementById('userEmailDisplay').textContent = ` 📧 Email: ${userEmail}`;
+            const typeEmojis = {
+                'personal': '👤 Just for myself',
+                'family': '👨‍👩‍👧‍👦 With my family',
+                'friends': '👫 With Friends',
+                'both': '👥 Both family and friends'
+            };
+            document.getElementById('usageTypeDisplay').textContent = ` 📋 Usage: ${typeEmojis[usageType] || usageType}`;
+        }
+
+        // Check authentication on load
+        checkAuth();
+    </script>
+</body>
+
+</html>
